@@ -1,0 +1,67 @@
+package com.phegon.phegonbank.security;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.function.Function;
+
+@Service
+public class TokenService {
+
+    //this is secret key hashed using HMAC SHA256 algorithm for JWT_SECRET
+    private SecretKey key;
+
+    //This is secret key for signing the JWT tokens, but it is plain text(not hashed)
+    @Value("${jwt.secret")
+    private String JWT_SECRET;
+
+    @Value("${jwt.expiration}")
+    private long JWT_EXPIRATION_TIME;
+
+    @PostConstruct
+    private void init() {
+        byte[] keyBytes = JWT_SECRET.getBytes(StandardCharsets.UTF_8);
+        this.key = new SecretKeySpec(keyBytes, "HmacSHA256");
+    }
+
+    public String generateToken(String email) {
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION_TIME))
+                .signWith(key)
+                .compact();
+
+    }
+
+    public String getUserNameFromToken(String token) {
+        return extractClaims(token, Claims::getSubject);
+    }
+
+    private <T> T extractClaims(String token, Function<Claims, T> claimsTFunction) {
+        return claimsTFunction.apply(Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+        );
+    }
+
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        final String username = getUserNameFromToken(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    public boolean isTokenExpired(String token) {
+        final Date expiration = extractClaims(token, Claims::getExpiration);
+        return expiration.before(new Date());
+    }
+}
