@@ -20,10 +20,10 @@ public class TokenService {
     private SecretKey key;
 
     //This is secret key for signing the JWT tokens, but it is plain text(not hashed)
-    @Value("${jwt.secret")
+    @Value("${jwt.secret.string}")
     private String JWT_SECRET;
 
-    @Value("${jwt.expiration}")
+    @Value("${jwt.expiration.time}")
     private long JWT_EXPIRATION_TIME;
 
     @PostConstruct
