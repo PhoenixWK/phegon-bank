@@ -29,12 +29,13 @@ public class SecurityFilter {
     private final CustomAccessDenialHandler accessDenialHandler;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .exceptionHandling(e ->
                         e.accessDeniedHandler(accessDenialHandler).authenticationEntryPoint(authenticationEntryPoint))
-                .authorizeHttpRequests(req -> req.requestMatchers("/api/auth/**").permitAll()
+                .authorizeHttpRequests(req -> req.requestMatchers("/api/auth/**", "/api/roles/**").permitAll()
                     .anyRequest().authenticated())
                 .sessionManagement(mag -> mag.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
