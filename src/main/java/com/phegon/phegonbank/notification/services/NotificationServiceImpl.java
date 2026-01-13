@@ -51,7 +51,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
 
             //save message to database
-            Notification notification = Notification.builder()
+            /*Notification notification = Notification.builder()
                     .recipient(dto.getRecipient())
                     .subject(dto.getSubject())
                     .messageBody(dto.getBody())
@@ -59,7 +59,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .user(user)
                     .build();
 
-            repo.save(notification);
+            repo.save(notification);*/
 
             sender.send(mimeMessage);
         } catch (MessagingException e) {
